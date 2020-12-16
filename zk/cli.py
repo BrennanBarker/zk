@@ -31,9 +31,7 @@ def cli(ctx, notes_directory, editor):
 def new(config, **fields):
     """Create a new zk note.""" 
     filename = os.path.join(config.notes_directory, fields['identity'] + '.md')
-    formatted_fields = {k: join_with_spaces(v) for k,v in fields.items()}
-    with open_text('templates', 'note-template.md') as f:
-        text = string.Template(f.read()).substitute(fields)
+    text = fill('note-template.md', formatted(fields))
     edit_note(config, text, filename)
 
 @cli.command()
@@ -52,10 +50,10 @@ def search(config, regex, include_path):
         
 @cli.command()
 @click.option('--last', is_flag=True, callback=edit_last_note)
-@click.argument('filename')
+@click.argument('note_path', autocompletion=complete_note_path)
 @click.pass_obj
-def edit(config, filename):
-    click.edit(filename=filename, editor=config.editor)
+def edit(config, note_path):
+    click.edit(filename=note_path, editor=config.editor)
     
     
 # New note
@@ -65,6 +63,9 @@ def edit(config, filename):
     # Id (or filename)
 # Register friendly name? Titles associated with ids (json)
 # Search (keyword)
+# List
+    # Notes in mod order (for editing other than last)?
+    # Notes by "(path) title"
 # Note stats
 # Graph
     # Update

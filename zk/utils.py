@@ -4,11 +4,20 @@ import os
 from os.path import basename
 from subprocess import run
 from importlib.resources import open_text
+from string import Template
 import click
 
 
-def join_with_spaces(field):
-    return ' '.join(field) if type(field) == tuple else field
+
+    
+def formatted(fields):
+    def join_with_spaces(field):
+        return ' '.join(field) if type(field) == tuple else field
+    return {k: join_with_spaces(v) for k,v in fields.items()}
+
+def fill(template, fields):
+    with open_text('templates', template) as f:
+        return Template(f.read()).substitute(fields)
 
 def all_notes(notes_dir):
     return (os.path.join(notes_dir, file) for file in os.listdir(notes_dir) 
@@ -23,6 +32,9 @@ def parse_grep(result):
 
 def last_note(notes_dir):
     return sorted(all_notes(notes_dir), key=os.path.getmtime)[-1]
+
+def complete_note_path(ctx, args, incomplete):
+    return [n for n in all_notes(ctx.obj.notes_directory) if incomplete in n]
 
 def edit_note(config, text, filepath):
     new_text = click.edit(text, editor=config.editor, extension='.md')
