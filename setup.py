@@ -1,14 +1,15 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name = 'zk',
     version = '0.1',
-    py_modules = ['zk'],
+    packages=find_packages(),
+    include_package_data=True,
     install_requires = [
-        'click',
+        'Click',
     ],
     entry_points = '''
         [console_scripts]
-        zk=zk:cli
+        zk=zk.cli:cli
     '''
 )

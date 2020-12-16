@@ -1,8 +1,8 @@
 # $title
 
 ---
-**id**: $id
+**id**: $identity
 
-**tags**: $tags
+**tags**: $tag
 
-**refs**: $refs
+**refs**: $ref
