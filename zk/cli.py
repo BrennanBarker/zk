@@ -1,50 +1,9 @@
-import os, subprocess, glob, time, string
-from collections import namedtuple
+"""Command line interface for zk"""
+
+import os, time
 from typing import NamedTuple
-from importlib.resources import open_text
 import click
 from zk.utils import *
-
-print(ard)
-
-
-def filled_template(fields):
-    with open_text('templates', 'note-template.md') as f: 
-        return string.Template(f.read()).substitute(fields)
-
-def join_with_spaces(field):
-    return ' '.join(field) if type(field) == tuple else field
-
-def all_notes(notes_dir):
-    return (os.path.join(notes_dir, file) for file in os.listdir(notes_dir) 
-            if file.endswith('.md'))
-
-def grep_notes(regex, notes_dir):
-    results = subprocess.run(['grep', regex] + list(all_notes(notes_dir)),
-                             capture_output=True)
-    return str(results.stdout, 'utf-8').split('\n')[:-1]
-
-def split_grep(grep_result, directory):
-        without_dir = grep_result.replace(directory, '')
-        return (without_dir[1:18], without_dir[19:])
-
-def last_note(notes_dir):
-    return sorted(all_notes(notes_dir), key=os.path.getmtime)[-1]
-
-def edit_note(config, text, filepath):
-    new_text = click.edit(text, editor=config.editor, extension='.md')
-    if new_text:
-        click.echo(f'writing note to {filepath}')
-        with open(filepath, 'w') as f: f.write(new_text)
-    else: click.echo('no edits!')
-
-def edit_last_note(ctx, param, value):
-    config = ctx.obj
-    filepath = last_note(config.notes_directory)
-    with open(filepath) as f: 
-        text = f.read()
-    edit_note(config, text, filepath)
-    ctx.exit()
 
 
 class Config(NamedTuple):
@@ -72,19 +31,24 @@ def cli(ctx, notes_directory, editor):
 def new(config, **fields):
     """Create a new zk note.""" 
     filename = os.path.join(config.notes_directory, fields['identity'] + '.md')
-    text = filled_template({k: join_with_spaces(v) for k,v in fields.items()})
+    formatted_fields = {k: join_with_spaces(v) for k,v in fields.items()}
+    with open_text('templates', 'note-template.md') as f:
+        text = string.Template(f.read()).substitute(fields)
     edit_note(config, text, filename)
 
 @cli.command()
-# option: whole word vs. regex
+# option: whole word vs. regex 
 # option: context
+# pass grep options
 @click.argument('regex')
+@click.option('--include-path', is_flag=True, default=False)
 @click.pass_obj
-def search(config, regex):
+def search(config, regex, include_path):
     """Search your note directory by regex"""
-    for result in grep_notes(regex, config.notes_directory):
-        file, match = split_grep(result, config.notes_directory)
-        click.echo(f'{file}: {match}')
+    grep_result = grep_notes(regex, config.notes_directory)
+    for path, match in parse_grep(grep_result):
+        location = path if include_path else os.path.basename(path)
+        click.echo(f'({location}) {match}')
         
 @cli.command()
 @click.option('--last', is_flag=True, callback=edit_last_note)
