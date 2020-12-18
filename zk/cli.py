@@ -55,6 +55,26 @@ def search(config, regex, include_path):
 def edit(config, note_path):
     click.edit(filename=note_path, editor=config.editor)
     
+
+@cli.command()
+@click.argument('partial_id')
+@click.pass_context
+def test(ctx, partial_id):
+    notes = complete_note_path(ctx.obj.notes_directory, _, partial_id)
+    if len(notes) == 1:
+        click.edit(filename=notes[0], editor=config.editor)
+    elif len(notes) > 1:
+        for i, path in notes:
+            click.echo(f'[{i}] {os.path.basename(path)} {title(path)}')
+            click.prompt(type=click.I)
+    else: pass
+    
+
+@cli.command()
+@click.pass_obj
+def ls(config):
+    for note_path in all_notes(config.notes_directory):
+        click.echo(f'({note_path}) {title(note_path)}')
     
 # New note
 # Edit

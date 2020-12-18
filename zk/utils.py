@@ -33,8 +33,12 @@ def parse_grep(result):
 def last_note(notes_dir):
     return sorted(all_notes(notes_dir), key=os.path.getmtime)[-1]
 
+def title(note_path):
+    with open(note_path,'r') as f: return f.readline()[:-1]
+        
+
 def complete_note_path(ctx, args, incomplete):
-    return [n for n in all_notes(ctx.obj.notes_directory) if incomplete in n]
+    return complete_note_path(ctx.obj.notes_directory, incomplete)
 
 def edit_note(config, text, filepath):
     new_text = click.edit(text, editor=config.editor, extension='.md')
