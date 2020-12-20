@@ -1,15 +1,9 @@
 """Command line interface for zk"""
 
 import os, time
-from typing import NamedTuple
 import click
 from zk.utils import *
 
-
-class Config(NamedTuple):
-    notes_directory: str
-    editor: str
-    
 
 @click.group()
 @click.option('--notes-directory', default=os.path.expanduser('~/notes'),
@@ -27,12 +21,12 @@ def cli(ctx, notes_directory, editor):
 @click.option('--title', default='', help='Note title')
 @click.option('--tag', default=[], multiple=True, help='Specify tags')
 @click.option('--ref', default=[], multiple=True, help='Specify refs')
-@click.pass_obj
-def new(config, **fields):
+@click.pass_context
+def new(ctx, **fields):
     """Create a new zk note.""" 
-    filename = os.path.join(config.notes_directory, fields['identity'] + '.md')
+    filename = os.path.join(ctx.obj.notes_directory, fields['identity'] + '.md')
     text = fill('note-template.md', formatted(fields))
-    edit_note(config, text, filename)
+    edit_note(ctx, text, filename)
 
 @cli.command()
 # option: whole word vs. regex 
@@ -40,52 +34,31 @@ def new(config, **fields):
 # pass grep options
 @click.argument('regex')
 @click.option('--include-path', is_flag=True, default=False)
-@click.pass_obj
-def search(config, regex, include_path):
+@click.pass_context
+def search(ctx, regex, include_path):
     """Search your note directory by regex"""
-    grep_result = grep_notes(regex, config.notes_directory)
+    grep_result = grep_notes(regex, ctx)
     for path, match in parse_grep(grep_result):
         location = path if include_path else os.path.basename(path)
         click.echo(f'({location}) {match}')
-        
-@cli.command()
-@click.option('--last', is_flag=True, callback=edit_last_note)
-@click.argument('note_path', autocompletion=complete_note_path)
-@click.pass_obj
-def edit(config, note_path):
-    click.edit(filename=note_path, editor=config.editor)
     
 
 @cli.command()
-@click.argument('partial_id')
+@click.option('--last', '-l', is_flag=True)
+@click.argument('partial_id', required=False, default='')
 @click.pass_context
-def test(ctx, partial_id):
-    notes = complete_note_path(ctx.obj.notes_directory, _, partial_id)
-    if len(notes) == 1:
-        click.edit(filename=notes[0], editor=config.editor)
-    elif len(notes) > 1:
-        for i, path in notes:
-            click.echo(f'[{i}] {os.path.basename(path)} {title(path)}')
-            click.prompt(type=click.I)
-    else: pass
-    
+def edit(ctx, partial_id, last):
+    note = last_note(ctx) if last else get_note(ctx, partial_id)
+    if note: edit_note(ctx, get_text(note), note)
+    else: click.echo(f'No notes containing "{partial_id}"')
+
 
 @cli.command()
-@click.pass_obj
-def ls(config):
-    for note_path in all_notes(config.notes_directory):
-        click.echo(f'({note_path}) {title(note_path)}')
+@click.pass_context
+def ls(ctx):
+    for note in all_notes(ctx): click.echo(f'({note}) {title(note)}')
     
-# New note
-# Edit
-    # Most recently edited note
-    # Most recently created note
-    # Id (or filename)
-# Register friendly name? Titles associated with ids (json)
-# Search (keyword)
-# List
-    # Notes in mod order (for editing other than last)?
-    # Notes by "(path) title"
+
 # Note stats
 # Graph
     # Update
