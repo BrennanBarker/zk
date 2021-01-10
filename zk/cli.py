@@ -8,11 +8,15 @@ from zk.utils import *
 @click.group()
 @click.option('--notes-directory', default=os.path.expanduser('~/notes'),
               help='Directory where notes are stored (default ~/notes)')
+@click.option('--html-directory', default=os.path.expanduser('~/notes/html'),
+              help='Directory of html mirror of notes (default ~/notes/html)')
 @click.option('--editor', default='vim', 
               help='Editor used to edit notes.')
 @click.pass_context
-def cli(ctx, notes_directory, editor): 
-    ctx.obj = Config(notes_directory=notes_directory, editor=editor)
+def cli(ctx, notes_directory, html_directory, editor): 
+    ctx.obj = Config(notes_directory=notes_directory, 
+                     html_directory=html_directory,
+                     editor=editor)
 
 
 @cli.command()
@@ -29,8 +33,6 @@ def new(ctx, **fields):
     edit_note(ctx, text, filename)
 
 @cli.command()
-# option: whole word vs. regex 
-# option: context
 # pass grep options
 @click.argument('regex')
 @click.option('--include-path', is_flag=True, default=False)
@@ -56,11 +58,23 @@ def edit(ctx, partial_id, last):
 @cli.command()
 @click.pass_context
 def ls(ctx):
-    for note in all_notes(ctx): click.echo(f'({note}) {title(note)}')
-    
+    for note in all_notes(ctx): click.echo(f'({note}) {get_title(note)}')
+        
+
+@cli.command()
+@click.pass_context
+def build(ctx):
+    """(Re)build an html mirror of the note archive."""
+    click.echo('Building html archive...')
+    build_html_notes(ctx)
+    click.echo('Done.')
 
 # Note stats
 # Graph
     # Update
     # View
 # View as html?
+    # Update automatically?
+    # Autobuild top-level index
+    # Autogenerate tag indexes
+    

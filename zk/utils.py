@@ -1,17 +1,15 @@
 """Utilities for dealing with zk notes."""
 
 import os
-from os.path import basename
-from typing import NamedTuple
 from subprocess import run
 from importlib.resources import open_text
 from string import Template
+import re
 import click
+
+from zk.configuration import *
     
 
-class Config(NamedTuple):
-    notes_directory: str
-    editor: str
         
 
 def formatted(fields):
@@ -25,7 +23,8 @@ def fill(template, fields):
 
 def all_notes(ctx):
     nd = ctx.obj.notes_directory
-    return (os.path.join(nd, file) for file in os.listdir(nd) if file.endswith('.md'))
+    return (os.path.join(nd, file) for file in os.listdir(nd) 
+            if file.endswith('.md') and file != 'tags.md')
 
 def grep_notes(re, ctx):
     return run(['grep', re] + list(all_notes(ctx)), capture_output=True)
@@ -37,25 +36,36 @@ def parse_grep(result):
 def last_note(ctx):
     return sorted(all_notes(ctx), key=os.path.getmtime)[-1]
 
-def title(note_path):
-    with open(note_path,'r') as f: return f.readline()[:-1]
+# Note Metadata
+def get_id(note):
+    return os.path.basename(note)[:-3]
+
+def get_text(filepath): 
+    with open(filepath) as f: return f.read()
+
+def get_title(note):
+    with open(note,'r') as f: return f.readline()[:-1]
+    
+def get_tags(note):
+    return re.findall(r'\#\w\S+', get_text(note))
+
+def get_refs(note):
+    return set(re.findall(r'\d{14}', get_text(note))) - {get_id(note)}
         
-def complete_note_path(ctx, args, incomplete):
+def complete_note(ctx, args, incomplete):
     return [path for path in all_notes(ctx) if incomplete in path]
 
 def get_note(ctx, partial_id):
-    notes = complete_note_path(ctx, None, partial_id)
+    notes = complete_note(ctx, None, partial_id)
     if len(notes) == 1: return notes[0]
     elif len(notes) == 0: return None
     else:
         for i, path in enumerate(notes):
-            click.echo(f'[{i}] {os.path.basename(path)} {title(path)}')
+            click.echo(f'[{i}] {os.path.basename(path)} {get_title(path)}')
         choice = click.prompt('Which note', prompt_suffix='? ', 
                               type=click.IntRange(min=0, max=len(notes)))
         return notes[choice]
 
-def get_text(filepath):
-    with open(filepath) as f: return f.read()
 
 def edit_note(ctx, text, filepath):
     new_text = click.edit(text, editor=ctx.obj.editor, extension='.md')
@@ -63,3 +73,51 @@ def edit_note(ctx, text, filepath):
         click.echo(f'writing note to {filepath}')
         with open(filepath, 'w') as f: f.write(new_text)
     else: click.echo('no edits!')
+
+def build_html_notes(ctx):
+    if not os.path.exists(ctx.obj.html_directory): os.mkdir(ctx.obj.html_directory)
+    for note in all_notes(ctx):
+        run(['pandoc', note, 
+             '-t', 'html', 
+             '-o', os.path.join(ctx.obj.html_directory, 
+                                os.path.basename(note)[:-3]) + '.html'])
+        
+def build_tag_index(ctx):
+    tags_by_note = {note: get_tags(note) for note in all_notes(ctx)}
+    all_tags = set(sum(tags_by_note.values(), []))
+    tag_index = {tag: [] for tag in all_tags}
+    for tag, notes in tag_index.items():
+        for note, tags in tags_by_note.items():
+            if tag in tags: notes.append(note)
+    return dict(sorted(tag_index.items(), key=lambda i: len(i[1]), reverse=True))
+   
+    
+def build_tags_page(ctx):
+    tags_page = os.path.join(ctx.obj.notes_directory, 'tags.md')
+    tag_index = build_tag_index(ctx)
+    with open(tags_page, 'w') as f:
+        for tag, notes in tag_index.items():
+            f.write(f'## {tag}\n')
+            for note in notes:
+                f.write(f'{get_link(ctx, note)} {get_title(note)}\n\n')
+                
+
+
+def get_html_path(ctx, note):
+    return os.path.join(ctx.obj.html_directory, get_id(note) + '.html')
+
+# All links in markdown should link to markdown (vim editing), but the html links should be to html?
+
+def get_link(ctx, note):
+    """Given a path to a (markdown) note, return a markdown-formatted link to the corresponding html file"""
+    return f'[{get_id(note)}]({get_html_path(ctx, note)})'
+
+
+def edgelist(ctx):
+    return {get_id(note): get_refs(note) for note in all_notes(ctx)}
+    
+# Edgelist
+# get_refs
+# build edgelist
+    # {note: get_refs(note) for note in all_notes}
+    
