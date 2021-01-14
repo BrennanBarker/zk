@@ -6,11 +6,9 @@ from importlib.resources import open_text
 from string import Template
 import re
 import click
+from markdown import markdown
 
 from zk.configuration import *
-    
-
-        
 
 def formatted(fields):
     def join_with_spaces(field):
@@ -40,9 +38,15 @@ def last_note(ctx):
 def get_id(note):
     return os.path.basename(note)[:-3]
 
+def get_note_path(ctx, note_id):
+    return os.path.join(ctx.obj.notes_directory, note_id + '.md')
+
 def get_text(filepath): 
     with open(filepath) as f: return f.read()
 
+def get_note_html(ctx, note_id):
+    return markdown(get_text(get_note_path(ctx, note_id)))
+    
 def get_title(note):
     with open(note,'r') as f: return f.readline()[:-1]
     

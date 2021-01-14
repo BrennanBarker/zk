@@ -1,8 +1,9 @@
 """Command line interface for zk"""
 
-import os, time
+import os, time, webbrowser
 import click
 from zk.utils import *
+from zk.viewer import create_app
 
 
 @click.group()
@@ -60,6 +61,16 @@ def edit(ctx, partial_id, last):
 def ls(ctx):
     for note in all_notes(ctx): click.echo(f'({note}) {get_title(note)}')
         
+@cli.command()
+@click.option('--open-browser', '-l', is_flag=True)
+@click.option('--host', '-h', default=None)
+@click.option('--port', '-p', default=None)
+@click.pass_context
+def view(ctx, open_browser, host, port):
+    viewer = create_app(ctx)
+    viewer.run(host=host, port=port)
+    if open_browser:
+        webbrowser.open(f'{host}:{port}')
 
 @cli.command()
 @click.pass_context
