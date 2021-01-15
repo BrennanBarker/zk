@@ -1,7 +1,13 @@
 """Command line interface for zk"""
 
-import os, time, webbrowser
+import os 
+import time
+import random
+import threading
+import webbrowser as wb
+
 import click
+
 from zk.utils import *
 from zk.viewer import create_app
 
@@ -62,15 +68,15 @@ def ls(ctx):
     for note in all_notes(ctx): click.echo(f'({note}) {get_title(note)}')
         
 @cli.command()
-@click.option('--open-browser', '-l', is_flag=True)
-@click.option('--host', '-h', default=None)
-@click.option('--port', '-p', default=None)
+@click.option('--no-browser', is_flag=True)
+@click.option('--host', '-h', default='127.0.0.1')
+@click.option('--port', '-p', default=5000+random.randint(0,999))
 @click.pass_context
-def view(ctx, open_browser, host, port):
+def view(ctx, no_browser, host, port):
     viewer = create_app(ctx)
-    viewer.run(host=host, port=port)
-    if open_browser:
-        webbrowser.open(f'{host}:{port}')
+    viewer.run(host=host, port=port, debug=False)
+    if not no_browser: # BUG: Open browser... doesn't work?
+        threading.Timer(1.25, lambda: wb.open(f'{host}:{port}')).start()
 
 @cli.command()
 @click.pass_context
