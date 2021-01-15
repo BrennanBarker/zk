@@ -32,6 +32,7 @@ def create_app(ctx, test_config=None):
     
     @app.route('/note/<note_id>')
     def view_note(note_id):
-        return markdown(get_note_html(ctx, note_id.removesuffix('.md')))
+        if note_id.endswith('.md'): note_id = note_id[:-3]
+        return markdown(get_note_html(ctx, note_id))
 
     return app
