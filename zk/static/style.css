@@ -1,0 +1,19 @@
+nav {
+    float: right;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav li {
+    display: inline;
+}
+
+nav li a {
+    text-decoration: none;
+    text-transform: lowercase;
+    font-size: .8em;
+}
