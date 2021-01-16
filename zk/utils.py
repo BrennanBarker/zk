@@ -46,12 +46,8 @@ def get_text(filepath):
 
 def get_note_html(ctx, note_id):
     """TODO: make the markdown safe w/ 3rd party lib like bleach"""
-    return markdown(
-        get_text(get_note_path(ctx, note_id)),
-        safe_mode=remove,
-        
-    )
-    
+    return markdown(get_text(get_note_path(ctx, note_id)),)
+   
 def get_title(note):
     with open(note,'r') as f: return f.readline()[2:-1]
     

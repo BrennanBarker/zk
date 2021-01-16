@@ -7,10 +7,7 @@ from zk.utils import get_note_html, get_title, get_note_path
 def create_app(ctx, test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-    )
+    app.config.from_mapping(SECRET_KEY='dev',)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -18,12 +15,6 @@ def create_app(ctx, test_config=None):
     else:
         # load the test config if passed in
         app.config.from_mapping(test_config)
-
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
 
     @app.route('/all')
     def all_notes():
