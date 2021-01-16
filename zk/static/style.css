@@ -17,3 +17,7 @@ nav li a {
     text-transform: lowercase;
     font-size: .8em;
 }
+
+ul.tag_index {
+    list-style-type: none;
+}

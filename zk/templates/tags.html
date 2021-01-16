@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block content %}
+<ul class="tag_index">
+    {% for tag, notes in tag_index.items() %}
+    <li>{{ tag }}</li>
+    <ul>
+        {% for note_path in notes %}
+        <li>
+            <a href="note/{{ get_id(note_path) }}">{{ get_title(note_path) }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+</ul>
+
+{% endblock %}

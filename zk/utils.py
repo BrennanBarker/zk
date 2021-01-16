@@ -8,7 +8,7 @@ import re
 
 import click
 import bleach
-from bleach_whitelist import markdown_tags, markdown_attrs
+from bleach_allowlist import markdown_tags, markdown_attrs
 from markdown import markdown
 
 from zk.configuration import *
@@ -40,28 +40,28 @@ def last_note(ctx):
     return sorted(all_notes(ctx), key=os.path.getmtime)[-1]
 
 # Note Metadata
-def get_id(note_path):
-    return os.path.basename(note_path)[:-3]
-
 def get_note_path(ctx, note_id):
     return os.path.join(ctx.obj.notes_directory, note_id + '.md')
+
+def get_id(note_path):
+    return os.path.basename(note_path)[:-3]
 
 def get_text(note_path): 
     with open(note_path) as f: return f.read()
 
-def get_title(note):
-    with open(note,'r') as f: return f.readline()[2:-1]
+def get_title(note_path):
+    with open(note_path,'r') as f: return f.readline()[2:-1]
     
-def get_tags(note):
-    return re.findall(r'\#\w\S+', get_text(note))
+def get_tags(note_path):
+    return re.findall(r'\#\w\S+', get_text(note_path))
 
-def get_refs(note):
-    return set(re.findall(r'\d{14}', get_text(note))) - {get_id(note)}
+def get_refs(note_path):
+    return set(re.findall(r'\d{14}', get_text(note_path))) - {get_id(note_path)}
 
 # Note text conversion
 def get_note_html(ctx, note_id):
     text = get_text(get_note_path(ctx, note_id))
-    html = bleach.clean(markdown.markdown(text), markdown_tags, markdown_attrs)
+    html = bleach.clean(markdown(text), markdown_tags, markdown_attrs)
     return html
 
 # Get / Complete note

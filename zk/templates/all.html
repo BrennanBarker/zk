@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block content %}
+<table class="note_table">
+    <tr>
+        <th>Note</th>
+        <th>ID</th>
+    </tr>
+    {% for note_path in notes %}
+    <tr>
+        <td>
+            <a href="note/{{ get_id(note_path) }}">{{ get_title(note_path) }}</a>
+        </td>
+        <td>{{ get_id(note_path) }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

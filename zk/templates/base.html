@@ -1,11 +1,11 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - zk</title>
+<title>{% block page_title %}{% endblock %} - zk</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
   <ul>
-      <li><a href="{{ url_for('all_notes') }}">All</a>
+      <li><a href="{{ url_for('all_notes_page') }}">All</a>
       <li><a href="{{ url_for('search') }}">Search</a>
-      <li><a href="{{ url_for('tags') }}">Tags</a>
+      <li><a href="{{ url_for('tag') }}">Tags</a>
       <li><a href="{{ url_for('graph') }}">Graph</a>
   </ul>
 </nav>
