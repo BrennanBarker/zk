@@ -78,20 +78,12 @@ def view(ctx, no_browser, host, port):
     if not no_browser: # BUG: Open browser... doesn't work?
         threading.Timer(1.25, lambda: wb.open(f'{host}:{port}')).start()
 
-@cli.command()
-@click.pass_context
-def build(ctx):
-    """(Re)build an html mirror of the note archive."""
-    click.echo('Building html archive...')
-    build_html_notes(ctx)
-    click.echo('Done.')
 
 # Note stats
 # Graph
     # Update
     # View
 # View as html?
-    # Update automatically?
     # Autobuild top-level index
     # Autogenerate tag indexes
     

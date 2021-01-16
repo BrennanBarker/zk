@@ -16,7 +16,7 @@ def formatted(fields):
     return {k: join_with_spaces(v) for k,v in fields.items()}
 
 def fill(template, fields):
-    with open_text('templates', template) as f:
+    with open_text('zk.templates', template) as f:
         return Template(f.read()).substitute(fields)
 
 def all_notes(ctx):
@@ -79,13 +79,6 @@ def edit_note(ctx, text, filepath):
         with open(filepath, 'w') as f: f.write(new_text)
     else: click.echo('no edits!')
 
-def build_html_notes(ctx):
-    if not os.path.exists(ctx.obj.html_directory): os.mkdir(ctx.obj.html_directory)
-    for note in all_notes(ctx):
-        run(['pandoc', note, 
-             '-t', 'html', 
-             '-o', os.path.join(ctx.obj.html_directory, 
-                                os.path.basename(note)[:-3]) + '.html'])
         
 def build_tag_index(ctx):
     tags_by_note = {note: get_tags(note) for note in all_notes(ctx)}
@@ -106,12 +99,6 @@ def build_tags_page(ctx):
             for note in notes:
                 f.write(f'{get_link(ctx, note)} {get_title(note)}\n\n')
                 
-
-
-def get_html_path(ctx, note):
-    return os.path.join(ctx.obj.html_directory, get_id(note) + '.html')
-
-# All links in markdown should link to markdown (vim editing), but the html links should be to html?
 
 def get_link(ctx, note):
     """Given a path to a (markdown) note, return a markdown-formatted link to the corresponding html file"""
