@@ -57,7 +57,7 @@ def search(ctx, regex, include_path):
 @click.argument('partial_id', required=False, default='')
 @click.pass_context
 def edit(ctx, partial_id, last):
-    note = last_note(ctx) if last else get_note(ctx, partial_id)
+    note = last_note(ctx) if last else select_note(ctx, partial_id)
     if note: edit_note(ctx, get_text(note), note)
     else: click.echo(f'No notes containing "{partial_id}"')
 
