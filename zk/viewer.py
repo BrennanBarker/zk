@@ -1,8 +1,8 @@
 import os
 from markdown import markdown
-from flask import Flask
+from flask import Flask, render_template
 
-from zk.utils import get_note_html
+from zk.utils import get_note_html, get_title, get_note_path
 
 def create_app(ctx, test_config=None):
     # create and configure the app
@@ -25,14 +25,27 @@ def create_app(ctx, test_config=None):
     except OSError:
         pass
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    @app.route('/all')
+    def all_notes():
+        return 'This will show all notes'
+    
+    @app.route('/search')
+    def search():
+        return 'This will show the search page'
+    
+    @app.route('/tags')
+    def tags():
+        return 'This will show a tags page'
+    
+    @app.route('/graph')
+    def graph():
+        return 'This will show the graph'
     
     @app.route('/note/<note_id>')
     def view_note(note_id):
         if note_id.endswith('.md'): note_id = note_id[:-3]
-        return markdown(get_note_html(ctx, note_id))
+        return render_template('note.html', 
+                               note_html=get_note_html(ctx, note_id), 
+                               title=get_title(get_note_path(ctx, note_id)))
 
     return app

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block content %}
+  {{ note_html|safe }} <!-- is it really safe? -->
+{% endblock %}

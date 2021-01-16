@@ -45,10 +45,15 @@ def get_text(filepath):
     with open(filepath) as f: return f.read()
 
 def get_note_html(ctx, note_id):
-    return markdown(get_text(get_note_path(ctx, note_id)))
+    """TODO: make the markdown safe w/ 3rd party lib like bleach"""
+    return markdown(
+        get_text(get_note_path(ctx, note_id)),
+        safe_mode=remove,
+        
+    )
     
 def get_title(note):
-    with open(note,'r') as f: return f.readline()[:-1]
+    with open(note,'r') as f: return f.readline()[2:-1]
     
 def get_tags(note):
     return re.findall(r'\#\w\S+', get_text(note))
