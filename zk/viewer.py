@@ -30,9 +30,11 @@ def create_app(ctx, test_config=None):
     def search():
         return 'This will show the search page'
     
-    @app.route('/tag')
-    def tag():
-        tag_index = build_tag_index(ctx)
+    @app.route('/tag/<tag_name>')
+    """Stopped here, make this a blueprint"""
+    def tag(tag_name):
+        if tag_name == 'all-tags':
+            tag_index = build_tag_index(ctx)
         return render_template('tags.html',
                                tag_index=tag_index,
                                get_id=get_id,
